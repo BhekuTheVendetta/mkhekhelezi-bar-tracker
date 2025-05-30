@@ -1,8 +1,40 @@
 
-import { Wine, Menu } from "lucide-react";
+import { Wine, Menu, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'employee';
+}
 
 export const Navbar = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const currentUser = sessionStorage.getItem("currentUser");
+    if (currentUser) {
+      setUser(JSON.parse(currentUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("currentUser");
+    navigate("/auth");
+  };
+
   return (
     <nav className="bg-slate-900/90 backdrop-blur-md border-b border-slate-700 sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -15,9 +47,38 @@ export const Navbar = () => {
             </div>
           </div>
           
-          <Button variant="ghost" size="sm" className="text-blue-200 hover:text-white">
-            <Menu className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center space-x-4">
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-blue-200 hover:text-white">
+                    <User className="w-4 h-4 mr-2" />
+                    {user.name}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-slate-800 border-slate-600">
+                  <DropdownMenuLabel className="text-white">
+                    <div className="flex flex-col">
+                      <span>{user.name}</span>
+                      <span className="text-xs text-blue-300 capitalize">{user.role}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-slate-600" />
+                  <DropdownMenuItem 
+                    onClick={handleLogout}
+                    className="text-red-300 hover:text-red-200 hover:bg-slate-700"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            
+            <Button variant="ghost" size="sm" className="text-blue-200 hover:text-white">
+              <Menu className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </div>
     </nav>
