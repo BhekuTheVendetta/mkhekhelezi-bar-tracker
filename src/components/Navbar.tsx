@@ -1,5 +1,5 @@
 
-import { Wine, Menu, LogOut, User } from "lucide-react";
+import { Wine, Menu, LogOut, User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -48,6 +48,18 @@ export const Navbar = () => {
           </div>
           
           <div className="flex items-center space-x-4">
+            {user?.role === 'admin' && (
+              <Button
+                onClick={() => navigate("/admin")}
+                variant="ghost"
+                size="sm"
+                className="text-yellow-400 hover:text-yellow-300"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
+            )}
+            
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -64,6 +76,18 @@ export const Navbar = () => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-slate-600" />
+                  {user.role === 'admin' && (
+                    <>
+                      <DropdownMenuItem 
+                        onClick={() => navigate("/admin")}
+                        className="text-yellow-400 hover:text-yellow-300 hover:bg-slate-700"
+                      >
+                        <Shield className="w-4 h-4 mr-2" />
+                        Admin Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-slate-600" />
+                    </>
+                  )}
                   <DropdownMenuItem 
                     onClick={handleLogout}
                     className="text-red-300 hover:text-red-200 hover:bg-slate-700"
