@@ -24,14 +24,15 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
     quantity: "",
     unit: "",
     minStock: "",
-    price: "",
+    purchasePrice: "",
+    sellingPrice: "",
     supplier: "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.category || !formData.quantity || !formData.unit || !formData.minStock || !formData.price || !formData.supplier) {
+    if (!formData.name || !formData.category || !formData.quantity || !formData.unit || !formData.minStock || !formData.purchasePrice || !formData.sellingPrice || !formData.supplier) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -46,7 +47,8 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
       quantity: parseInt(formData.quantity),
       unit: formData.unit,
       minStock: parseInt(formData.minStock),
-      price: parseFloat(formData.price),
+      purchasePrice: parseFloat(formData.purchasePrice),
+      sellingPrice: parseFloat(formData.sellingPrice),
       supplier: formData.supplier,
       lastUpdated: new Date(),
     };
@@ -60,7 +62,8 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
       quantity: "",
       unit: "",
       minStock: "",
-      price: "",
+      purchasePrice: "",
+      sellingPrice: "",
       supplier: "",
     });
 
@@ -154,13 +157,26 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="price" className="text-blue-200">Price per Unit ($)</Label>
+                <Label htmlFor="purchasePrice" className="text-blue-200">Purchase Price ($)</Label>
                 <Input
-                  id="price"
+                  id="purchasePrice"
                   type="number"
                   step="0.01"
-                  value={formData.price}
-                  onChange={(e) => handleInputChange("price", e.target.value)}
+                  value={formData.purchasePrice}
+                  onChange={(e) => handleInputChange("purchasePrice", e.target.value)}
+                  placeholder="0.00"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="sellingPrice" className="text-blue-200">Selling Price ($)</Label>
+                <Input
+                  id="sellingPrice"
+                  type="number"
+                  step="0.01"
+                  value={formData.sellingPrice}
+                  onChange={(e) => handleInputChange("sellingPrice", e.target.value)}
                   placeholder="0.00"
                   className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
                 />

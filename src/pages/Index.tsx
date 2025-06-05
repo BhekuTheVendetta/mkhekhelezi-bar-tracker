@@ -14,7 +14,8 @@ export interface InventoryItem {
   quantity: number;
   unit: string;
   minStock: number;
-  price: number;
+  purchasePrice: number;
+  sellingPrice: number;
   supplier: string;
   lastUpdated: Date;
 }
@@ -29,7 +30,8 @@ const Index = () => {
       quantity: 12,
       unit: "bottles",
       minStock: 5,
-      price: 45.99,
+      purchasePrice: 35.99,
+      sellingPrice: 45.99,
       supplier: "Premium Spirits Co.",
       lastUpdated: new Date("2024-05-28")
     },
@@ -40,7 +42,8 @@ const Index = () => {
       quantity: 3,
       unit: "cases",
       minStock: 5,
-      price: 28.50,
+      purchasePrice: 22.50,
+      sellingPrice: 28.50,
       supplier: "Beer Distributors",
       lastUpdated: new Date("2024-05-29")
     },
@@ -51,7 +54,8 @@ const Index = () => {
       quantity: 8,
       unit: "bottles",
       minStock: 3,
-      price: 32.00,
+      purchasePrice: 24.00,
+      sellingPrice: 32.00,
       supplier: "Wine Merchants",
       lastUpdated: new Date("2024-05-27")
     },
@@ -62,7 +66,8 @@ const Index = () => {
       quantity: 2,
       unit: "cases",
       minStock: 4,
-      price: 18.75,
+      purchasePrice: 14.75,
+      sellingPrice: 18.75,
       supplier: "Beverage Supply",
       lastUpdated: new Date("2024-05-30")
     }

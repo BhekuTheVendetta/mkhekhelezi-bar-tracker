@@ -27,7 +27,8 @@ export const EditItemDialog = ({ item, isOpen, onClose, onSave }: EditItemDialog
     quantity: "",
     unit: "",
     minStock: "",
-    price: "",
+    purchasePrice: "",
+    sellingPrice: "",
     supplier: "",
   });
 
@@ -39,7 +40,8 @@ export const EditItemDialog = ({ item, isOpen, onClose, onSave }: EditItemDialog
         quantity: item.quantity.toString(),
         unit: item.unit,
         minStock: item.minStock.toString(),
-        price: item.price.toString(),
+        purchasePrice: item.purchasePrice.toString(),
+        sellingPrice: item.sellingPrice.toString(),
         supplier: item.supplier,
       });
     }
@@ -48,7 +50,7 @@ export const EditItemDialog = ({ item, isOpen, onClose, onSave }: EditItemDialog
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.category || !formData.quantity || !formData.unit || !formData.minStock || !formData.price || !formData.supplier) {
+    if (!formData.name || !formData.category || !formData.quantity || !formData.unit || !formData.minStock || !formData.purchasePrice || !formData.sellingPrice || !formData.supplier) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -64,7 +66,8 @@ export const EditItemDialog = ({ item, isOpen, onClose, onSave }: EditItemDialog
       quantity: parseInt(formData.quantity),
       unit: formData.unit,
       minStock: parseInt(formData.minStock),
-      price: parseFloat(formData.price),
+      purchasePrice: parseFloat(formData.purchasePrice),
+      sellingPrice: parseFloat(formData.sellingPrice),
       supplier: formData.supplier,
       lastUpdated: new Date(),
     };
@@ -156,13 +159,25 @@ export const EditItemDialog = ({ item, isOpen, onClose, onSave }: EditItemDialog
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-price" className="text-blue-200">Price per Unit ($)</Label>
+              <Label htmlFor="edit-purchasePrice" className="text-blue-200">Purchase Price ($)</Label>
               <Input
-                id="edit-price"
+                id="edit-purchasePrice"
                 type="number"
                 step="0.01"
-                value={formData.price}
-                onChange={(e) => handleInputChange("price", e.target.value)}
+                value={formData.purchasePrice}
+                onChange={(e) => handleInputChange("purchasePrice", e.target.value)}
+                className="bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-sellingPrice" className="text-blue-200">Selling Price ($)</Label>
+              <Input
+                id="edit-sellingPrice"
+                type="number"
+                step="0.01"
+                value={formData.sellingPrice}
+                onChange={(e) => handleInputChange("sellingPrice", e.target.value)}
                 className="bg-slate-700 border-slate-600 text-white"
               />
             </div>
