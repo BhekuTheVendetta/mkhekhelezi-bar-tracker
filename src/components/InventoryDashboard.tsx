@@ -63,7 +63,10 @@ export const InventoryDashboard = ({ items, onNavigateToInventory }: InventoryDa
         </CardContent>
       </Card>
 
-      <Card className="bg-slate-800 border-slate-600 text-white">
+      <Card 
+        className="bg-slate-800 border-slate-600 text-white cursor-pointer hover:bg-slate-700 transition-colors"
+        onClick={() => navigate("/potential-revenue")}
+      >
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <TrendingUp className="w-4 h-4" />
