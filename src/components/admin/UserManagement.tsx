@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,7 @@ interface User {
   name: string;
   email: string;
   password: string;
-  role: 'admin' | 'employee';
+  role: 'admin' | 'employee' | 'manager';
   createdAt: string;
 }
 
@@ -46,12 +45,6 @@ export const UserManagement = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newUser, setNewUser] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "employee" as 'admin' | 'employee'
-  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -114,6 +107,13 @@ export const UserManagement = () => {
       description: "User has been removed from the system.",
     });
   };
+
+  const [newUser, setNewUser] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "employee" as 'admin' | 'employee' | 'manager'
+  });
 
   const handleAddUser = () => {
     if (!newUser.name || !newUser.email || !newUser.password) {
@@ -197,12 +197,13 @@ export const UserManagement = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="new-role" className="text-blue-200">Role</Label>
-                <Select value={newUser.role} onValueChange={(value: 'admin' | 'employee') => setNewUser({...newUser, role: value})}>
+                <Select value={newUser.role} onValueChange={(value: 'admin' | 'employee' | 'manager') => setNewUser({...newUser, role: value})}>
                   <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-700 border-slate-600">
                     <SelectItem value="employee">Employee</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
                     <SelectItem value="admin">Administrator</SelectItem>
                   </SelectContent>
                 </Select>
@@ -309,13 +310,14 @@ export const UserManagement = () => {
                 <Label htmlFor="edit-role" className="text-blue-200">Role</Label>
                 <Select 
                   value={editingUser.role} 
-                  onValueChange={(value: 'admin' | 'employee') => setEditingUser({...editingUser, role: value})}
+                  onValueChange={(value: 'admin' | 'employee' | 'manager') => setEditingUser({...editingUser, role: value})}
                 >
                   <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-700 border-slate-600">
                     <SelectItem value="employee">Employee</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
                     <SelectItem value="admin">Administrator</SelectItem>
                   </SelectContent>
                 </Select>

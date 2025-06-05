@@ -57,6 +57,14 @@ const App = () => (
               </AuthGuard>
             } 
           />
+          <Route 
+            path="/admin" 
+            element={
+              <AuthGuard requiredRoles={['admin', 'manager']}>
+                <Admin />
+              </AuthGuard>
+            } 
+          />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -6,15 +6,15 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'employee';
+  role: 'admin' | 'employee' | 'manager';
 }
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  requiredRole?: 'admin' | 'employee';
+  requiredRoles?: ('admin' | 'employee' | 'manager')[];
 }
 
-export const AuthGuard = ({ children, requiredRole }: AuthGuardProps) => {
+export const AuthGuard = ({ children, requiredRoles }: AuthGuardProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ export const AuthGuard = ({ children, requiredRole }: AuthGuardProps) => {
 
     const userData = JSON.parse(currentUser);
     
-    if (requiredRole && userData.role !== requiredRole) {
+    if (requiredRoles && !requiredRoles.includes(userData.role)) {
       // Redirect to unauthorized page or show error
       navigate("/");
       return;
@@ -37,7 +37,7 @@ export const AuthGuard = ({ children, requiredRole }: AuthGuardProps) => {
 
     setUser(userData);
     setIsLoading(false);
-  }, [navigate, requiredRole]);
+  }, [navigate, requiredRoles]);
 
   if (isLoading) {
     return (

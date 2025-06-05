@@ -16,7 +16,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'employee';
+  role: 'admin' | 'employee' | 'manager';
 }
 
 export const Navbar = () => {
@@ -48,7 +48,7 @@ export const Navbar = () => {
           </div>
           
           <div className="flex items-center space-x-4">
-            {user?.role === 'admin' && (
+            {(user?.role === 'admin' || user?.role === 'manager') && (
               <Button
                 onClick={() => navigate("/admin")}
                 variant="ghost"
@@ -76,7 +76,7 @@ export const Navbar = () => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-slate-600" />
-                  {user.role === 'admin' && (
+                  {(user.role === 'admin' || user.role === 'manager') && (
                     <>
                       <DropdownMenuItem 
                         onClick={() => navigate("/admin")}
