@@ -1,13 +1,11 @@
-
 import { useState } from "react";
 import { InventoryItem } from "@/pages/Index";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Edit, Trash2, Package } from "lucide-react";
-import { EditItemDialog } from "@/components/EditItemDialog";
+import { EditItemDialog } from "./EditItemDialog";
+import { Pencil, Trash2, AlertTriangle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface InventoryListProps {
   items: InventoryItem[];
@@ -16,115 +14,98 @@ interface InventoryListProps {
 }
 
 export const InventoryList = ({ items, onUpdateItem, onDeleteItem }: InventoryListProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const { toast } = useToast();
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
 
-  const categories = ["all", ...new Set(items.map(item => item.category))];
-  
-  const filteredItems = items.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.supplier.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || item.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
-
-  const getStockStatus = (item: InventoryItem) => {
-    if (item.quantity <= item.minStock) return "low";
-    if (item.quantity <= item.minStock * 1.5) return "medium";
-    return "good";
+  const handleEdit = (item: InventoryItem) => {
+    setEditingItem(item);
   };
 
-  const getStockBadge = (item: InventoryItem) => {
-    const status = getStockStatus(item);
-    if (status === "low") return <Badge variant="destructive">Low Stock</Badge>;
-    if (status === "medium") return <Badge variant="secondary" className="bg-yellow-600">Medium</Badge>;
-    return <Badge variant="default" className="bg-green-600">In Stock</Badge>;
+  const handleDelete = (id: string) => {
+    onDeleteItem(id);
+    toast({
+      title: "Success",
+      description: "Item deleted successfully",
+    });
+  };
+
+  const handleSave = (updatedItem: InventoryItem) => {
+    onUpdateItem(updatedItem);
+    setEditingItem(null);
   };
 
   return (
     <div className="space-y-6">
-      {/* Search and Filter */}
-      <Card className="bg-slate-800/50 border-slate-600">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
-              <Input
-                placeholder="Search items or suppliers..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-              />
-            </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full md:w-48 bg-slate-700 border-slate-600 text-white">
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-700 border-slate-600">
-                {categories.map(category => (
-                  <SelectItem key={category} value={category} className="text-white">
-                    {category === "all" ? "All Categories" : category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-white">Inventory Items</h2>
+        <div className="text-sm text-blue-200">
+          {items.length} items • {items.filter(item => item.quantity <= item.minStock).length} low stock
+        </div>
+      </div>
 
-      {/* Items Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredItems.map(item => (
-          <Card key={item.id} className="bg-gradient-to-br from-slate-800 to-slate-700 border-slate-600 hover:border-slate-500 transition-colors">
+      <div className="grid gap-4">
+        {items.map((item) => (
+          <Card key={item.id} className="bg-slate-800 border-slate-600">
             <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div>
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
                   <CardTitle className="text-white text-lg">{item.name}</CardTitle>
-                  <p className="text-blue-200 text-sm">{item.category}</p>
+                  <div className="flex gap-2 mt-2">
+                    <Badge variant="secondary" className="bg-blue-600 text-white">
+                      {item.category}
+                    </Badge>
+                    {item.quantity <= item.minStock && (
+                      <Badge variant="destructive" className="flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        Low Stock
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-                <Package className="w-6 h-6 text-blue-400" />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-300">Quantity:</span>
-                  <span className="text-white font-semibold">{item.quantity} {item.unit}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-300">Min Stock:</span>
-                  <span className="text-white">{item.minStock} {item.unit}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-300">Price:</span>
-                  <span className="text-white font-semibold">${item.price.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-300">Supplier:</span>
-                  <span className="text-white text-sm">{item.supplier}</span>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center">
-                {getStockBadge(item)}
                 <div className="flex space-x-2">
                   <Button
-                    size="sm"
                     variant="outline"
-                    onClick={() => setEditingItem(item)}
-                    className="border-slate-600 text-blue-400 hover:bg-blue-600 hover:text-white"
+                    size="sm"
+                    onClick={() => handleEdit(item)}
+                    className="border-slate-600 text-blue-400 hover:bg-slate-700"
                   >
-                    <Edit className="w-4 h-4" />
+                    <Pencil className="w-4 h-4" />
                   </Button>
                   <Button
+                    variant="destructive"
                     size="sm"
-                    variant="outline"
-                    onClick={() => onDeleteItem(item.id)}
-                    className="border-slate-600 text-red-400 hover:bg-red-600 hover:text-white"
+                    onClick={() => handleDelete(item.id)}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <p className="text-blue-200">Quantity</p>
+                  <p className="text-white font-medium">{item.quantity} {item.unit}</p>
+                </div>
+                <div>
+                  <p className="text-blue-200">Min Stock</p>
+                  <p className="text-white font-medium">{item.minStock} {item.unit}</p>
+                </div>
+                <div>
+                  <p className="text-blue-200">Purchase Price</p>
+                  <p className="text-white font-medium">${item.purchasePrice}</p>
+                </div>
+                <div>
+                  <p className="text-blue-200">Selling Price</p>
+                  <p className="text-white font-medium">${item.sellingPrice}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <p className="text-blue-200">Supplier</p>
+                  <p className="text-white font-medium">{item.supplier}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <p className="text-blue-200">Last Updated</p>
+                  <p className="text-white font-medium">{item.lastUpdated.toLocaleDateString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -132,22 +113,12 @@ export const InventoryList = ({ items, onUpdateItem, onDeleteItem }: InventoryLi
         ))}
       </div>
 
-      {filteredItems.length === 0 && (
-        <Card className="bg-slate-800/50 border-slate-600">
-          <CardContent className="p-12 text-center">
-            <Package className="w-12 h-12 text-slate-500 mx-auto mb-4" />
-            <p className="text-slate-400 text-lg">No items found</p>
-            <p className="text-slate-500 text-sm">Try adjusting your search or filter criteria</p>
-          </CardContent>
-        </Card>
-      )}
-
       {editingItem && (
         <EditItemDialog
           item={editingItem}
           isOpen={!!editingItem}
           onClose={() => setEditingItem(null)}
-          onSave={onUpdateItem}
+          onSave={handleSave}
         />
       )}
     </div>
