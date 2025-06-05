@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { InventoryDashboard } from "@/components/InventoryDashboard";
 import { InventoryList } from "@/components/InventoryList";
@@ -92,6 +91,10 @@ const Index = () => {
     setInventoryItems(items => items.filter(item => item.id !== id));
   };
 
+  const handleNavigateToInventory = () => {
+    setActiveTab("inventory");
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
       <Navbar />
@@ -148,7 +151,12 @@ const Index = () => {
 
         {/* Content */}
         <div className="animate-in fade-in-0 duration-500">
-          {activeTab === "dashboard" && <InventoryDashboard items={inventoryItems} />}
+          {activeTab === "dashboard" && (
+            <InventoryDashboard 
+              items={inventoryItems} 
+              onNavigateToInventory={handleNavigateToInventory}
+            />
+          )}
           {activeTab === "inventory" && (
             <InventoryList 
               items={inventoryItems} 

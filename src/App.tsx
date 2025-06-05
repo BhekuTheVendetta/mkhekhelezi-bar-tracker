@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import LowStock from "./pages/LowStock";
 import NotFound from "./pages/NotFound";
 import { AuthGuard } from "./components/auth/AuthGuard";
 
@@ -62,6 +63,14 @@ const App = () => (
             element={
               <AuthGuard requiredRoles={['admin', 'manager']}>
                 <Admin />
+              </AuthGuard>
+            } 
+          />
+          <Route 
+            path="/low-stock" 
+            element={
+              <AuthGuard>
+                <LowStock />
               </AuthGuard>
             } 
           />

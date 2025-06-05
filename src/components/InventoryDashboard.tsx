@@ -1,12 +1,16 @@
+
 import { InventoryItem } from "@/pages/Index";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Package, TrendingUp, DollarSign } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface InventoryDashboardProps {
   items: InventoryItem[];
+  onNavigateToInventory: () => void;
 }
 
-export const InventoryDashboard = ({ items }: InventoryDashboardProps) => {
+export const InventoryDashboard = ({ items, onNavigateToInventory }: InventoryDashboardProps) => {
+  const navigate = useNavigate();
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const lowStockItems = items.filter(item => item.quantity <= item.minStock);
   const totalValue = items.reduce((sum, item) => sum + (item.quantity * item.purchasePrice), 0);
@@ -14,7 +18,10 @@ export const InventoryDashboard = ({ items }: InventoryDashboardProps) => {
 
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <Card className="bg-slate-800 border-slate-600 text-white">
+      <Card 
+        className="bg-slate-800 border-slate-600 text-white cursor-pointer hover:bg-slate-700 transition-colors"
+        onClick={onNavigateToInventory}
+      >
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Package className="w-4 h-4" />
@@ -27,7 +34,10 @@ export const InventoryDashboard = ({ items }: InventoryDashboardProps) => {
         </CardContent>
       </Card>
 
-      <Card className="bg-slate-800 border-slate-600 text-white">
+      <Card 
+        className="bg-slate-800 border-slate-600 text-white cursor-pointer hover:bg-slate-700 transition-colors"
+        onClick={() => navigate("/low-stock")}
+      >
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <AlertTriangle className="w-4 h-4" />
