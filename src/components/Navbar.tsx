@@ -1,5 +1,5 @@
 
-import { Wine, Menu, LogOut, User, Shield } from "lucide-react";
+import { Menu, LogOut, User, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -83,7 +83,11 @@ export const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-3">
-            <Wine className="w-8 h-8 text-yellow-400" />
+            <img 
+              src="/lovable-uploads/ab961674-21f0-42d2-b26e-f14098d70e52.png" 
+              alt="Mkhekhelezi Bar & Grill Logo" 
+              className="w-10 h-10 object-contain"
+            />
             <div>
               <h2 className="text-xl font-bold text-white">Mkhekhelezi GLC</h2>
               <p className="text-xs text-blue-200">Bar Management</p>

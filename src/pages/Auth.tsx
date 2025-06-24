@@ -4,7 +4,6 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { SignUpForm } from "@/components/auth/SignUpForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Wine } from "lucide-react";
 
 export const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,7 +13,11 @@ export const Auth = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <Wine className="w-10 h-10 text-yellow-400" />
+            <img 
+              src="/lovable-uploads/ab961674-21f0-42d2-b26e-f14098d70e52.png" 
+              alt="Mkhekhelezi Bar & Grill Logo" 
+              className="w-16 h-16 object-contain"
+            />
             <div>
               <h1 className="text-2xl font-bold text-white">Mkhekhelezi GLC</h1>
               <p className="text-blue-200 text-sm">Bar Management System</p>
