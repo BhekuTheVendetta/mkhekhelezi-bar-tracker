@@ -1,43 +1,90 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { User, Session } from "@supabase/supabase-js";
 
-interface User {
+interface Profile {
   id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'employee' | 'manager';
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  role: string;
 }
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  requiredRoles?: ('admin' | 'employee' | 'manager')[];
+  requiredRoles?: string[];
 }
 
 export const AuthGuard = ({ children, requiredRoles }: AuthGuardProps) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const currentUser = sessionStorage.getItem("currentUser");
-    
-    if (!currentUser) {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Fetch user profile
+          setTimeout(async () => {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            
+            setProfile(profileData);
+            setIsLoading(false);
+          }, 0);
+        } else {
+          setProfile(null);
+          setIsLoading(false);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        // Fetch user profile
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data: profileData }) => {
+            setProfile(profileData);
+            setIsLoading(false);
+          });
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && !user) {
       navigate("/auth");
       return;
     }
 
-    const userData = JSON.parse(currentUser);
-    
-    if (requiredRoles && !requiredRoles.includes(userData.role)) {
-      // Redirect to unauthorized page or show error
+    if (!isLoading && profile && requiredRoles && !requiredRoles.includes(profile.role)) {
       navigate("/");
       return;
     }
-
-    setUser(userData);
-    setIsLoading(false);
-  }, [navigate, requiredRoles]);
+  }, [isLoading, user, profile, requiredRoles, navigate]);
 
   if (isLoading) {
     return (
@@ -47,7 +94,7 @@ export const AuthGuard = ({ children, requiredRoles }: AuthGuardProps) => {
     );
   }
 
-  if (!user) {
+  if (!user || !profile) {
     return null;
   }
 

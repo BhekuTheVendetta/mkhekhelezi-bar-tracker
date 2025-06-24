@@ -14,35 +14,6 @@ import { AuthGuard } from "./components/auth/AuthGuard";
 
 const queryClient = new QueryClient();
 
-// Initialize demo users
-const initializeDemoUsers = () => {
-  const existingUsers = localStorage.getItem("barUsers");
-  if (!existingUsers) {
-    const demoUsers = [
-      {
-        id: "1",
-        name: "Admin User",
-        email: "admin@bar.com",
-        password: "admin123",
-        role: "admin",
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: "2",
-        name: "Employee User",
-        email: "employee@bar.com",
-        password: "emp123",
-        role: "employee",
-        createdAt: new Date().toISOString(),
-      },
-    ];
-    localStorage.setItem("barUsers", JSON.stringify(demoUsers));
-  }
-};
-
-// Initialize demo users on app start
-initializeDemoUsers();
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -72,6 +43,14 @@ const App = () => (
             element={
               <AuthGuard>
                 <LowStock />
+              </AuthGuard>
+            } 
+          />
+          <Route 
+            path="/potential-revenue" 
+            element={
+              <AuthGuard>
+                <PotentialRevenue />
               </AuthGuard>
             } 
           />

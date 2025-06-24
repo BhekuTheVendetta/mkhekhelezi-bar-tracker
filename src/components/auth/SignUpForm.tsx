@@ -6,10 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export const SignUpForm = () => {
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -18,7 +20,7 @@ export const SignUpForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -42,67 +44,77 @@ export const SignUpForm = () => {
       return;
     }
 
-    setTimeout(() => {
-      // Get existing users or create empty array
-      const existingUsers = JSON.parse(localStorage.getItem("barUsers") || "[]");
-      
-      // Check if user already exists
-      const userExists = existingUsers.find((user: any) => user.email === formData.email);
-      
-      if (userExists) {
-        toast({
-          title: "Error",
-          description: "User with this email already exists",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Create new user
-      const newUser = {
-        id: Date.now().toString(),
-        name: formData.name,
+    try {
+      const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
-        role: formData.role,
-        createdAt: new Date().toISOString(),
-      };
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            role: formData.role,
+          },
+        },
+      });
 
-      // Save to localStorage
-      const updatedUsers = [...existingUsers, newUser];
-      localStorage.setItem("barUsers", JSON.stringify(updatedUsers));
-
+      if (error) {
+        toast({
+          title: "Sign Up Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Account Created",
+          description: "Please check your email to verify your account.",
+        });
+        
+        // Reset form
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          role: "",
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Account Created",
-        description: "Your account has been created successfully!",
+        title: "Sign Up Failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
       });
-
-      // Reset form
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        role: "",
-      });
-
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name" className="text-blue-200">Full Name</Label>
+        <Label htmlFor="firstName" className="text-blue-200">First Name</Label>
         <Input
-          id="name"
+          id="firstName"
           type="text"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          value={formData.firstName}
+          onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
           required
           className="bg-slate-700 border-slate-600 text-white"
-          placeholder="Enter your full name"
+          placeholder="Enter your first name"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="lastName" className="text-blue-200">Last Name</Label>
+        <Input
+          id="lastName"
+          type="text"
+          value={formData.lastName}
+          onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+          className="bg-slate-700 border-slate-600 text-white"
+          placeholder="Enter your last name"
         />
       </div>
 
@@ -127,6 +139,7 @@ export const SignUpForm = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="admin">Administrator</SelectItem>
+            <SelectItem value="manager">Manager</SelectItem>
             <SelectItem value="employee">Employee</SelectItem>
           </SelectContent>
         </Select>

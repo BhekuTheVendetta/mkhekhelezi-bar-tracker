@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,118 +31,189 @@ import {
 } from "@/components/ui/select";
 import { Users, Edit, Trash2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-interface User {
+interface Profile {
   id: string;
-  name: string;
-  email: string;
-  password: string;
-  role: 'admin' | 'employee' | 'manager';
-  createdAt: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  role: string;
+  created_at: string;
 }
 
 export const UserManagement = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadUsers();
+    loadProfiles();
   }, []);
 
-  const loadUsers = () => {
-    const storedUsers = JSON.parse(localStorage.getItem("barUsers") || "[]");
-    setUsers(storedUsers);
+  const loadProfiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load users",
+          variant: "destructive",
+        });
+      } else {
+        setProfiles(data || []);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const saveUsers = (updatedUsers: User[]) => {
-    localStorage.setItem("barUsers", JSON.stringify(updatedUsers));
-    setUsers(updatedUsers);
-  };
-
-  const handleEditUser = (user: User) => {
-    setEditingUser({ ...user });
+  const handleEditProfile = (profile: Profile) => {
+    setEditingProfile({ ...profile });
     setIsEditDialogOpen(true);
   };
 
-  const handleSaveEdit = () => {
-    if (!editingUser) return;
+  const handleSaveEdit = async () => {
+    if (!editingProfile) return;
 
-    const updatedUsers = users.map(user => 
-      user.id === editingUser.id ? editingUser : user
-    );
-    
-    saveUsers(updatedUsers);
-    
-    // Update session if editing current user
-    const currentUser = sessionStorage.getItem("currentUser");
-    if (currentUser) {
-      const current = JSON.parse(currentUser);
-      if (current.id === editingUser.id) {
-        sessionStorage.setItem("currentUser", JSON.stringify({
-          id: editingUser.id,
-          name: editingUser.name,
-          email: editingUser.email,
-          role: editingUser.role
-        }));
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          first_name: editingProfile.first_name,
+          last_name: editingProfile.last_name,
+          role: editingProfile.role,
+        })
+        .eq('id', editingProfile.id);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to update user",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "User Updated",
+          description: "User has been updated successfully.",
+        });
+        
+        await loadProfiles();
+        setIsEditDialogOpen(false);
+        setEditingProfile(null);
       }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
     }
-
-    toast({
-      title: "User Updated",
-      description: `${editingUser.name} has been updated successfully.`,
-    });
-
-    setIsEditDialogOpen(false);
-    setEditingUser(null);
   };
 
-  const handleDeleteUser = (userId: string) => {
-    const updatedUsers = users.filter(user => user.id !== userId);
-    saveUsers(updatedUsers);
-    
-    toast({
-      title: "User Deleted",
-      description: "User has been removed from the system.",
-    });
+  const handleDeleteProfile = async (profileId: string) => {
+    try {
+      // Note: This will also delete the user from auth.users due to CASCADE
+      const { error } = await supabase.auth.admin.deleteUser(profileId);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete user",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "User Deleted",
+          description: "User has been removed from the system.",
+        });
+        
+        await loadProfiles();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
   };
 
   const [newUser, setNewUser] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
-    role: "employee" as 'admin' | 'employee' | 'manager'
+    role: "employee"
   });
 
-  const handleAddUser = () => {
-    if (!newUser.name || !newUser.email || !newUser.password) {
+  const handleAddUser = async () => {
+    if (!newUser.firstName || !newUser.email || !newUser.password) {
       toast({
         title: "Error",
-        description: "Please fill in all fields.",
+        description: "Please fill in all required fields.",
         variant: "destructive",
       });
       return;
     }
 
-    const user: User = {
-      id: Date.now().toString(),
-      ...newUser,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const { data, error } = await supabase.auth.admin.createUser({
+        email: newUser.email,
+        password: newUser.password,
+        email_confirm: true,
+        user_metadata: {
+          first_name: newUser.firstName,
+          last_name: newUser.lastName,
+          role: newUser.role,
+        },
+      });
 
-    const updatedUsers = [...users, user];
-    saveUsers(updatedUsers);
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "User Added",
+          description: `${newUser.firstName} has been added successfully.`,
+        });
 
-    toast({
-      title: "User Added",
-      description: `${newUser.name} has been added successfully.`,
-    });
-
-    setNewUser({ name: "", email: "", password: "", role: "employee" });
-    setIsAddDialogOpen(false);
+        setNewUser({ firstName: "", lastName: "", email: "", password: "", role: "employee" });
+        setIsAddDialogOpen(false);
+        await loadProfiles();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-white">Loading users...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -167,11 +239,20 @@ export const UserManagement = () => {
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="new-name" className="text-blue-200">Name</Label>
+                <Label htmlFor="new-firstName" className="text-blue-200">First Name</Label>
                 <Input
-                  id="new-name"
-                  value={newUser.name}
-                  onChange={(e) => setNewUser({...newUser, name: e.target.value})}
+                  id="new-firstName"
+                  value={newUser.firstName}
+                  onChange={(e) => setNewUser({...newUser, firstName: e.target.value})}
+                  className="bg-slate-700 border-slate-600 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-lastName" className="text-blue-200">Last Name</Label>
+                <Input
+                  id="new-lastName"
+                  value={newUser.lastName}
+                  onChange={(e) => setNewUser({...newUser, lastName: e.target.value})}
                   className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
@@ -197,7 +278,7 @@ export const UserManagement = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="new-role" className="text-blue-200">Role</Label>
-                <Select value={newUser.role} onValueChange={(value: 'admin' | 'employee' | 'manager') => setNewUser({...newUser, role: value})}>
+                <Select value={newUser.role} onValueChange={(value) => setNewUser({...newUser, role: value})}>
                   <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                     <SelectValue />
                   </SelectTrigger>
@@ -234,27 +315,29 @@ export const UserManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id} className="border-slate-600">
-                  <TableCell className="text-white">{user.name}</TableCell>
-                  <TableCell className="text-white">{user.email}</TableCell>
+              {profiles.map((profile) => (
+                <TableRow key={profile.id} className="border-slate-600">
+                  <TableCell className="text-white">
+                    {`${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'N/A'}
+                  </TableCell>
+                  <TableCell className="text-white">{profile.email}</TableCell>
                   <TableCell>
                     <Badge 
-                      variant={user.role === 'admin' ? 'default' : 'secondary'}
-                      className={user.role === 'admin' ? 'bg-blue-600' : 'bg-slate-600'}
+                      variant={profile.role === 'admin' ? 'default' : 'secondary'}
+                      className={profile.role === 'admin' ? 'bg-blue-600' : 'bg-slate-600'}
                     >
-                      {user.role}
+                      {profile.role}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-white">
-                    {new Date(user.createdAt).toLocaleDateString()}
+                    {new Date(profile.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleEditUser(user)}
+                        onClick={() => handleEditProfile(profile)}
                         className="text-blue-400 hover:text-blue-300"
                       >
                         <Edit className="w-4 h-4" />
@@ -262,7 +345,7 @@ export const UserManagement = () => {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleDeleteUser(user.id)}
+                        onClick={() => handleDeleteProfile(profile.id)}
                         className="text-red-400 hover:text-red-300"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -285,14 +368,23 @@ export const UserManagement = () => {
               Update user information and role assignment.
             </DialogDescription>
           </DialogHeader>
-          {editingUser && (
+          {editingProfile && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-name" className="text-blue-200">Name</Label>
+                <Label htmlFor="edit-firstName" className="text-blue-200">First Name</Label>
                 <Input
-                  id="edit-name"
-                  value={editingUser.name}
-                  onChange={(e) => setEditingUser({...editingUser, name: e.target.value})}
+                  id="edit-firstName"
+                  value={editingProfile.first_name || ''}
+                  onChange={(e) => setEditingProfile({...editingProfile, first_name: e.target.value})}
+                  className="bg-slate-700 border-slate-600 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-lastName" className="text-blue-200">Last Name</Label>
+                <Input
+                  id="edit-lastName"
+                  value={editingProfile.last_name || ''}
+                  onChange={(e) => setEditingProfile({...editingProfile, last_name: e.target.value})}
                   className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
@@ -301,16 +393,16 @@ export const UserManagement = () => {
                 <Input
                   id="edit-email"
                   type="email"
-                  value={editingUser.email}
-                  onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
-                  className="bg-slate-700 border-slate-600 text-white"
+                  value={editingProfile.email || ''}
+                  disabled
+                  className="bg-slate-600 border-slate-500 text-gray-400"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-role" className="text-blue-200">Role</Label>
                 <Select 
-                  value={editingUser.role} 
-                  onValueChange={(value: 'admin' | 'employee' | 'manager') => setEditingUser({...editingUser, role: value})}
+                  value={editingProfile.role} 
+                  onValueChange={(value) => setEditingProfile({...editingProfile, role: value})}
                 >
                   <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
                     <SelectValue />

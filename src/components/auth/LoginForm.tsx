@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
 import { LogIn } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -15,39 +15,38 @@ export const LoginForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Get users from localStorage
-    const users = JSON.parse(localStorage.getItem("barUsers") || "[]");
-    const user = users.find((u: any) => u.email === email && u.password === password);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    setTimeout(() => {
-      if (user) {
-        // Save current user session
-        sessionStorage.setItem("currentUser", JSON.stringify({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role
-        }));
-
-        toast({
-          title: "Login Successful",
-          description: `Welcome back, ${user.name}!`,
-        });
-
-        navigate("/");
-      } else {
+      if (error) {
         toast({
           title: "Login Failed",
-          description: "Invalid email or password",
+          description: error.message,
           variant: "destructive",
         });
+      } else if (data.user) {
+        toast({
+          title: "Login Successful",
+          description: "Welcome back!",
+        });
+        navigate("/");
       }
+    } catch (error) {
+      toast({
+        title: "Login Failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -61,7 +60,7 @@ export const LoginForm = () => {
           onChange={(e) => setEmail(e.target.value)}
           required
           className="bg-slate-700 border-slate-600 text-white"
-          placeholder="admin@mkhekhelezi.com"
+          placeholder="Enter your email"
         />
       </div>
 
@@ -92,16 +91,6 @@ export const LoginForm = () => {
           </>
         )}
       </Button>
-
-      <Card className="bg-slate-700/50 border-slate-600">
-        <CardContent className="p-4">
-          <p className="text-sm text-blue-200 mb-2">Demo Accounts:</p>
-          <div className="text-xs text-slate-300 space-y-1">
-            <div>Admin: admin@bar.com / admin123</div>
-            <div>Employee: employee@bar.com / emp123</div>
-          </div>
-        </CardContent>
-      </Card>
     </form>
   );
 };
