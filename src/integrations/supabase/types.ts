@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string | null
+          description: string
+          id: string
+          stock_sheet_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string | null
+          description: string
+          id?: string
+          stock_sheet_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          stock_sheet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_stock_sheet_id_fkey"
+            columns: ["stock_sheet_id"]
+            isOneToOne: false
+            referencedRelation: "stock_sheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -48,6 +83,156 @@ export type Database = {
         Update: {
           id?: number
           "Role Name"?: string
+        }
+        Relationships: []
+      }
+      sales_records: {
+        Row: {
+          created_at: string | null
+          id: string
+          item_id: string
+          quantity_sold: number
+          stock_sheet_id: string
+          total_amount: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          item_id: string
+          quantity_sold: number
+          stock_sheet_id: string
+          total_amount: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          item_id?: string
+          quantity_sold?: number
+          stock_sheet_id?: string
+          total_amount?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_records_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "stock_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_records_stock_sheet_id_fkey"
+            columns: ["stock_sheet_id"]
+            isOneToOne: false
+            referencedRelation: "stock_sheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_items: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          name: string
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          name: string
+          unit: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          unit?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      stock_movements: {
+        Row: {
+          created_at: string | null
+          id: string
+          item_id: string
+          movement_type: string
+          quantity: number
+          stock_sheet_id: string
+          total_cost: number | null
+          unit_cost: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          item_id: string
+          movement_type: string
+          quantity: number
+          stock_sheet_id: string
+          total_cost?: number | null
+          unit_cost?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          item_id?: string
+          movement_type?: string
+          quantity?: number
+          stock_sheet_id?: string
+          total_cost?: number | null
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "stock_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_stock_sheet_id_fkey"
+            columns: ["stock_sheet_id"]
+            isOneToOne: false
+            referencedRelation: "stock_sheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_sheets: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          date: string
+          id: string
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          date: string
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import LowStock from "./pages/LowStock";
 import PotentialRevenue from "./pages/PotentialRevenue";
+import StockSheet from "./pages/StockSheet";
 import NotFound from "./pages/NotFound";
 import { AuthGuard } from "./components/auth/AuthGuard";
 
@@ -35,6 +36,14 @@ const App = () => (
             element={
               <AuthGuard requiredRoles={['admin', 'manager']}>
                 <Admin />
+              </AuthGuard>
+            } 
+          />
+          <Route 
+            path="/stock-sheet" 
+            element={
+              <AuthGuard>
+                <StockSheet />
               </AuthGuard>
             } 
           />
