@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,7 +44,7 @@ export const StockSheetDetails = ({ sheetId }: StockSheetDetailsProps) => {
         .from('stock_sheets')
         .select(`
           *,
-          profiles!inner(
+          profiles!stock_sheets_created_by_fkey(
             first_name,
             last_name,
             email
