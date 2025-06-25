@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import LowStock from "./pages/LowStock";
 import PotentialRevenue from "./pages/PotentialRevenue";
 import StockSheet from "./pages/StockSheet";
+import AddItem from "./pages/AddItem";
 import NotFound from "./pages/NotFound";
 import { AuthGuard } from "./components/auth/AuthGuard";
 
@@ -44,6 +45,14 @@ const App = () => (
             element={
               <AuthGuard>
                 <StockSheet />
+              </AuthGuard>
+            } 
+          />
+          <Route 
+            path="/add-item" 
+            element={
+              <AuthGuard>
+                <AddItem />
               </AuthGuard>
             } 
           />

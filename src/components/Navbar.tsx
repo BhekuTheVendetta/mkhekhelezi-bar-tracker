@@ -1,5 +1,5 @@
 
-import { Menu, LogOut, User, Shield, FileSpreadsheet } from "lucide-react";
+import { Menu, LogOut, User, Shield, FileSpreadsheet, Plus, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -95,6 +95,26 @@ export const Navbar = () => {
           </div>
           
           <div className="flex items-center space-x-4">
+            <Button
+              onClick={() => navigate("/")}
+              variant="ghost"
+              size="sm"
+              className="text-blue-200 hover:text-white"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Home
+            </Button>
+
+            <Button
+              onClick={() => navigate("/add-item")}
+              variant="ghost"
+              size="sm"
+              className="text-green-200 hover:text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Item
+            </Button>
+
             <Button
               onClick={() => navigate("/stock-sheet")}
               variant="ghost"
