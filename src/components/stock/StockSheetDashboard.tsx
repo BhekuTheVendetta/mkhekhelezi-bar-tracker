@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,11 +13,6 @@ interface StockSheet {
   status: string;
   notes: string | null;
   created_by: string;
-  profiles: {
-    first_name: string | null;
-    last_name: string | null;
-    email: string | null;
-  } | null;
 }
 
 interface StockSheetDashboardProps {
@@ -36,14 +32,7 @@ export const StockSheetDashboard = ({ onViewSheet }: StockSheetDashboardProps) =
     try {
       const { data, error } = await supabase
         .from('stock_sheets')
-        .select(`
-          *,
-          profiles!stock_sheets_created_by_fkey(
-            first_name,
-            last_name,
-            email
-          )
-        `)
+        .select('*')
         .order('date', { ascending: false });
 
       if (error) throw error;
@@ -104,10 +93,7 @@ export const StockSheetDashboard = ({ onViewSheet }: StockSheetDashboardProps) =
                 
                 <div className="flex items-center text-slate-300 text-sm">
                   <User className="w-4 h-4 mr-2" />
-                  {sheet.profiles?.first_name 
-                    ? `${sheet.profiles.first_name} ${sheet.profiles.last_name || ''}`.trim()
-                    : sheet.profiles?.email?.split('@')[0] || 'Unknown'
-                  }
+                  User {sheet.created_by.substring(0, 8)}...
                 </div>
 
                 {sheet.notes && (

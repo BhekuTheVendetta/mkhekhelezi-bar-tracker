@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,11 +18,6 @@ interface StockSheet {
   status: string;
   notes: string | null;
   created_by: string;
-  profiles: {
-    first_name: string | null;
-    last_name: string | null;
-    email: string | null;
-  } | null;
 }
 
 interface StockSheetDetailsProps {
@@ -42,14 +38,7 @@ export const StockSheetDetails = ({ sheetId }: StockSheetDetailsProps) => {
     try {
       const { data, error } = await supabase
         .from('stock_sheets')
-        .select(`
-          *,
-          profiles!stock_sheets_created_by_fkey(
-            first_name,
-            last_name,
-            email
-          )
-        `)
+        .select('*')
         .eq('id', sheetId)
         .single();
 
@@ -130,10 +119,7 @@ export const StockSheetDetails = ({ sheetId }: StockSheetDetailsProps) => {
                 Stock Sheet - {new Date(stockSheet.date).toLocaleDateString()}
               </CardTitle>
               <p className="text-slate-300 mt-1">
-                Created by {stockSheet.profiles?.first_name 
-                  ? `${stockSheet.profiles.first_name} ${stockSheet.profiles.last_name || ''}`.trim()
-                  : stockSheet.profiles?.email?.split('@')[0] || 'Unknown'
-                }
+                Created by User {stockSheet.created_by.substring(0, 8)}...
               </p>
             </div>
             <div className="flex items-center gap-3">
