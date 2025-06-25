@@ -22,7 +22,7 @@ interface StockSheet {
     first_name: string | null;
     last_name: string | null;
     email: string | null;
-  };
+  } | null;
 }
 
 interface StockSheetDetailsProps {
@@ -45,7 +45,7 @@ export const StockSheetDetails = ({ sheetId }: StockSheetDetailsProps) => {
         .from('stock_sheets')
         .select(`
           *,
-          profiles:created_by (
+          profiles!inner(
             first_name,
             last_name,
             email

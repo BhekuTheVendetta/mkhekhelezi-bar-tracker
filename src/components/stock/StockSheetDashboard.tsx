@@ -17,7 +17,7 @@ interface StockSheet {
     first_name: string | null;
     last_name: string | null;
     email: string | null;
-  };
+  } | null;
 }
 
 interface StockSheetDashboardProps {
@@ -39,7 +39,7 @@ export const StockSheetDashboard = ({ onViewSheet }: StockSheetDashboardProps) =
         .from('stock_sheets')
         .select(`
           *,
-          profiles:created_by (
+          profiles!inner(
             first_name,
             last_name,
             email

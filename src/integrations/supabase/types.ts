@@ -71,21 +71,6 @@ export type Database = {
         }
         Relationships: []
       }
-      Role: {
-        Row: {
-          id: number
-          "Role Name": string
-        }
-        Insert: {
-          id?: number
-          "Role Name": string
-        }
-        Update: {
-          id?: number
-          "Role Name"?: string
-        }
-        Relationships: []
-      }
       sales_records: {
         Row: {
           created_at: string | null
@@ -233,36 +218,6 @@ export type Database = {
           notes?: string | null
           status?: string | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      User: {
-        Row: {
-          Contact: number | null
-          Email: string | null
-          "First Name": string
-          id: number
-          "Last Name": string | null
-          Password: string | null
-          Role: string
-        }
-        Insert: {
-          Contact?: number | null
-          Email?: string | null
-          "First Name": string
-          id?: number
-          "Last Name"?: string | null
-          Password?: string | null
-          Role: string
-        }
-        Update: {
-          Contact?: number | null
-          Email?: string | null
-          "First Name"?: string
-          id?: number
-          "Last Name"?: string | null
-          Password?: string | null
-          Role?: string
         }
         Relationships: []
       }
