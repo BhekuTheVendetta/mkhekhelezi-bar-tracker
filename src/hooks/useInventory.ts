@@ -25,20 +25,26 @@ export const useInventory = () => {
 
   const fetchItems = async () => {
     try {
+      console.log('Fetching inventory items from Supabase...');
       const { data, error } = await supabase
         .from('inventory_items')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching items:', error);
+        throw error;
+      }
+      
+      console.log('Fetched items:', data);
       setItems(data || []);
     } catch (error: any) {
+      console.error('Fetch error:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch inventory items",
+        description: "Failed to fetch inventory items: " + error.message,
         variant: "destructive",
       });
-      console.error('Error fetching items:', error);
     } finally {
       setLoading(false);
     }
@@ -47,15 +53,22 @@ export const useInventory = () => {
   const saveItem = async (itemData: Omit<InventoryItem, 'id' | 'created_at' | 'updated_at'>) => {
     setSaving(true);
     try {
+      console.log('Saving item to Supabase:', itemData);
+      
       const { data, error } = await supabase
         .from('inventory_items')
         .insert([itemData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving item:', error);
+        throw error;
+      }
 
+      console.log('Item saved successfully:', data);
       setItems(prev => [data, ...prev]);
+      
       toast({
         title: "Success",
         description: "Item saved successfully",
@@ -63,9 +76,10 @@ export const useInventory = () => {
       
       return data;
     } catch (error: any) {
+      console.error('Save error:', error);
       toast({
         title: "Error", 
-        description: "Failed to save item",
+        description: "Failed to save item: " + error.message,
         variant: "destructive",
       });
       throw error;
@@ -76,6 +90,8 @@ export const useInventory = () => {
 
   const updateItem = async (id: string, updates: Partial<InventoryItem>) => {
     try {
+      console.log('Updating item:', id, updates);
+      
       const { data, error } = await supabase
         .from('inventory_items')
         .update(updates)
@@ -83,17 +99,23 @@ export const useInventory = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating item:', error);
+        throw error;
+      }
 
+      console.log('Item updated successfully:', data);
       setItems(prev => prev.map(item => item.id === id ? data : item));
+      
       toast({
         title: "Success",
         description: "Item updated successfully",
       });
     } catch (error: any) {
+      console.error('Update error:', error);
       toast({
         title: "Error",
-        description: "Failed to update item", 
+        description: "Failed to update item: " + error.message, 
         variant: "destructive",
       });
     }
@@ -101,22 +123,30 @@ export const useInventory = () => {
 
   const deleteItem = async (id: string) => {
     try {
+      console.log('Deleting item:', id);
+      
       const { error } = await supabase
         .from('inventory_items')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting item:', error);
+        throw error;
+      }
 
+      console.log('Item deleted successfully');
       setItems(prev => prev.filter(item => item.id !== id));
+      
       toast({
         title: "Success",
         description: "Item deleted successfully",
       });
     } catch (error: any) {
+      console.error('Delete error:', error);
       toast({
         title: "Error",
-        description: "Failed to delete item",
+        description: "Failed to delete item: " + error.message,
         variant: "destructive",
       });
     }

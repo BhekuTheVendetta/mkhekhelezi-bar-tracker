@@ -32,23 +32,30 @@ export const InventoryForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate required fields
     if (!formData.name || !formData.category || !formData.quantity) {
+      console.log('Validation failed - missing required fields');
       return;
     }
 
     try {
-      await saveItem({
+      console.log('Form submission started with data:', formData);
+      
+      const itemToSave = {
         name: formData.name,
         category: formData.category,
-        quantity: parseInt(formData.quantity),
-        unit: formData.unit,
+        quantity: parseInt(formData.quantity) || 0,
+        unit: formData.unit || 'pieces',
         min_stock: parseInt(formData.minStock) || 0,
         purchase_price: parseFloat(formData.purchasePrice) || 0,
         selling_price: parseFloat(formData.sellingPrice) || 0,
-        supplier: formData.supplier,
-      });
+        supplier: formData.supplier || '',
+      };
 
-      // Reset form
+      console.log('Saving item with processed data:', itemToSave);
+      await saveItem(itemToSave);
+
+      // Reset form on successful save
       setFormData({
         name: "",
         category: "",
@@ -59,8 +66,10 @@ export const InventoryForm = () => {
         sellingPrice: "",
         supplier: "",
       });
+      
+      console.log('Form reset after successful save');
     } catch (error) {
-      console.error('Error saving item:', error);
+      console.error('Error in form submission:', error);
     }
   };
 
