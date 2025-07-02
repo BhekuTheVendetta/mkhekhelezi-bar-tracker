@@ -1,98 +1,61 @@
 
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { InventoryItem } from "./Index";
 import { InventoryList } from "@/components/InventoryList";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { useInventory } from "@/hooks/useInventory";
+import { InventoryItem } from "./Index";
 
 const LowStock = () => {
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const navigate = useNavigate();
+  const { items, loading, updateItem, deleteItem } = useInventory();
 
-  useEffect(() => {
-    // Load inventory items from localStorage or use default data
-    const savedItems = localStorage.getItem("inventoryItems");
-    if (savedItems) {
-      const items = JSON.parse(savedItems);
-      // Convert date strings back to Date objects
-      const itemsWithDates = items.map((item: any) => ({
-        ...item,
-        lastUpdated: new Date(item.lastUpdated)
-      }));
-      setInventoryItems(itemsWithDates);
-    } else {
-      // Use default items if none saved
-      const defaultItems: InventoryItem[] = [
-        {
-          id: "1",
-          name: "Jack Daniels",
-          category: "Spirits",
-          quantity: 12,
-          unit: "bottles",
-          minStock: 5,
-          purchasePrice: 35.99,
-          sellingPrice: 45.99,
-          supplier: "Premium Spirits Co.",
-          lastUpdated: new Date("2024-05-28")
-        },
-        {
-          id: "2",
-          name: "Heineken",
-          category: "Beer",
-          quantity: 3,
-          unit: "cases",
-          minStock: 5,
-          purchasePrice: 22.50,
-          sellingPrice: 28.50,
-          supplier: "Beer Distributors",
-          lastUpdated: new Date("2024-05-29")
-        },
-        {
-          id: "3",
-          name: "Cabernet Sauvignon",
-          category: "Wine",
-          quantity: 8,
-          unit: "bottles",
-          minStock: 3,
-          purchasePrice: 24.00,
-          sellingPrice: 32.00,
-          supplier: "Wine Merchants",
-          lastUpdated: new Date("2024-05-27")
-        },
-        {
-          id: "4",
-          name: "Coca Cola",
-          category: "Mixers",
-          quantity: 2,
-          unit: "cases",
-          minStock: 4,
-          purchasePrice: 14.75,
-          sellingPrice: 18.75,
-          supplier: "Beverage Supply",
-          lastUpdated: new Date("2024-05-30")
-        }
-      ];
-      setInventoryItems(defaultItems);
-    }
-  }, []);
+  // Convert Supabase items to the expected format and filter for low stock
+  const inventoryItems: InventoryItem[] = items
+    .map(item => ({
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      quantity: item.quantity,
+      unit: item.unit,
+      minStock: item.min_stock,
+      purchasePrice: item.purchase_price,
+      sellingPrice: item.selling_price,
+      supplier: item.supplier,
+      lastUpdated: new Date(item.updated_at)
+    }))
+    .filter(item => item.quantity <= item.minStock);
 
-  const lowStockItems = inventoryItems.filter(item => item.quantity <= item.minStock);
+  const handleUpdateItem = async (updatedItem: InventoryItem) => {
+    await updateItem(updatedItem.id, {
+      name: updatedItem.name,
+      category: updatedItem.category,
+      quantity: updatedItem.quantity,
+      unit: updatedItem.unit,
+      min_stock: updatedItem.minStock,
+      purchase_price: updatedItem.purchasePrice,
+      selling_price: updatedItem.sellingPrice,
+      supplier: updatedItem.supplier,
+    });
+  };
 
-  const updateItem = (updatedItem: InventoryItem) => {
-    const updatedItems = inventoryItems.map(item => 
-      item.id === updatedItem.id ? updatedItem : item
+  const handleDeleteItem = async (id: string) => {
+    await deleteItem(id);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-white text-xl">Loading inventory...</div>
+          </div>
+        </div>
+      </div>
     );
-    setInventoryItems(updatedItems);
-    localStorage.setItem("inventoryItems", JSON.stringify(updatedItems));
-  };
-
-  const deleteItem = (id: string) => {
-    const updatedItems = inventoryItems.filter(item => item.id !== id);
-    setInventoryItems(updatedItems);
-    localStorage.setItem("inventoryItems", JSON.stringify(updatedItems));
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
@@ -118,11 +81,11 @@ const LowStock = () => {
           <p className="text-blue-200 text-lg">Items that need immediate attention for restocking</p>
         </div>
 
-        {lowStockItems.length > 0 ? (
+        {inventoryItems.length > 0 ? (
           <InventoryList 
-            items={lowStockItems} 
-            onUpdateItem={updateItem}
-            onDeleteItem={deleteItem}
+            items={inventoryItems} 
+            onUpdateItem={handleUpdateItem}
+            onDeleteItem={handleDeleteItem}
           />
         ) : (
           <div className="text-center py-12">
