@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useInventory, InventoryItem } from "@/hooks/useInventory";
-import { InventoryList } from "@/components/InventoryList";
+import InventoryList from "@/components/InventoryList";
 import { AddItemForm } from "@/components/AddItemForm";
 import { Navbar } from "@/components/Navbar";
 import { Package, Plus, BarChart3, AlertTriangle, DollarSign } from "lucide-react";

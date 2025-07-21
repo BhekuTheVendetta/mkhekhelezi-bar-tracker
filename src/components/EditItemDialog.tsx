@@ -1,16 +1,17 @@
-
-import { InventoryItem } from "@/pages/Index";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { InventoryItem } from "@/hooks/useInventory";
 import { EditItemForm } from "./forms/EditItemForm";
 
-interface EditItemDialogProps {
+// Export the interface for use in other files
+export interface EditItemDialogProps {
   item: InventoryItem;
   isOpen: boolean;
   onClose: () => void;
   onSave: (item: InventoryItem) => void;
 }
 
-export const EditItemDialog = ({ item, isOpen, onClose, onSave }: EditItemDialogProps) => {
+// Type the component explicitly
+const EditItemDialog: React.FC<EditItemDialogProps> = ({ item, isOpen, onClose, onSave }) => {
   const handleSave = (updatedItem: InventoryItem) => {
     onSave(updatedItem);
     onClose();
@@ -32,3 +33,5 @@ export const EditItemDialog = ({ item, isOpen, onClose, onSave }: EditItemDialog
     </Dialog>
   );
 };
+
+export default EditItemDialog;

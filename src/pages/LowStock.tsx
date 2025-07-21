@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useInventory, InventoryItem } from "@/hooks/useInventory";
-import { InventoryList } from "@/components/InventoryList";
+import  InventoryList  from "@/components/InventoryList";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, AlertTriangle } from "lucide-react";

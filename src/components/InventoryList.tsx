@@ -1,126 +1,178 @@
 import { useState } from "react";
 import { InventoryItem } from "@/hooks/useInventory";
+import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { EditItemDialog } from "./EditItemDialog";
-import { Pencil, Trash2, AlertTriangle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Package, Home, Edit, Trash } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import EditItemDialog, { EditItemDialogProps } from "@/components/EditItemDialog";
 
 interface InventoryListProps {
   items: InventoryItem[];
-  onUpdateItem: (id: string, updates: Partial<InventoryItem>) => void;
-  onDeleteItem: (id: string) => void;
+  onUpdateItem: (id: string, updates: Partial<InventoryItem>) => Promise<void>;
+  onDeleteItem: (id: string) => Promise<void>;
 }
 
-export const InventoryList = ({ items, onUpdateItem, onDeleteItem }: InventoryListProps) => {
-  const { toast } = useToast();
-  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+const InventoryList = ({ items, onUpdateItem, onDeleteItem }: InventoryListProps) => {
+  const navigate = useNavigate();
+  const [editItem, setEditItem] = useState<InventoryItem | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleEdit = (item: InventoryItem) => {
-    setEditingItem(item);
+  // Log items for debugging
+  console.log('InventoryList - Items:', items);
+
+  const handleSave = async (updatedItem: InventoryItem) => {
+    try {
+      await onUpdateItem(updatedItem.id, {
+        name: updatedItem.name,
+        category: updatedItem.category,
+        quantity: updatedItem.quantity,
+        unit: updatedItem.unit,
+        min_stock: updatedItem.min_stock,
+        purchase_price: updatedItem.purchase_price,
+        selling_price: updatedItem.selling_price,
+        supplier: updatedItem.supplier,
+      });
+      setEditItem(null);
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('InventoryList - Save Error:', error);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    onDeleteItem(id);
-    toast({
-      title: "Success",
-      description: "Item deleted successfully",
-    });
-  };
-
-  const handleSave = (updatedItem: InventoryItem) => {
-    onUpdateItem(updatedItem.id, updatedItem);
-    setEditingItem(null);
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-white">Inventory Items</h2>
-        <div className="text-sm text-blue-200">
-          {items.length} items • {items.filter(item => item.quantity <= item.min_stock).length} low stock
-        </div>
-      </div>
-
-      <div className="grid gap-4">
-        {items.map((item) => (
-          <Card key={item.id} className="bg-slate-800 border-slate-600">
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <CardTitle className="text-white text-lg">{item.name}</CardTitle>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="secondary" className="bg-blue-600 text-white">
-                      {item.category}
-                    </Badge>
-                    {item.quantity <= item.min_stock && (
-                      <Badge variant="destructive" className="flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3" />
-                        Low Stock
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(item)}
-                    className="border-slate-600 text-blue-400 hover:bg-slate-700"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDelete(item.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <p className="text-blue-200">Quantity</p>
-                  <p className="text-white font-medium">{item.quantity} {item.unit}</p>
-                </div>
-                <div>
-                  <p className="text-blue-200">Min Stock</p>
-                  <p className="text-white font-medium">{item.min_stock} {item.unit}</p>
-                </div>
-                <div>
-                  <p className="text-blue-200">Purchase Price</p>
-                  <p className="text-white font-medium">${item.purchase_price}</p>
-                </div>
-                <div>
-                  <p className="text-blue-200">Selling Price</p>
-                  <p className="text-white font-medium">${item.selling_price}</p>
-                </div>
-                <div className="md:col-span-2">
-                  <p className="text-blue-200">Supplier</p>
-                  <p className="text-white font-medium">{item.supplier}</p>
-                </div>
-                <div className="md:col-span-2">
-                  <p className="text-blue-200">Last Updated</p>
-                  <p className="text-white font-medium">{new Date(item.updated_at).toLocaleDateString()}</p>
-                </div>
-              </div>
+  if (!items || items.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
+                Inventory List
+              </h1>
+              <p className="text-blue-200 text-lg">Manage your inventory items</p>
+            </div>
+            <Button
+              onClick={() => navigate("/")}
+              variant="outline"
+              className="bg-blue-600 text-white border-blue-500 hover:bg-blue-700"
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Home
+            </Button>
+          </div>
+          <Card className="bg-slate-800 border-slate-600">
+            <CardContent className="p-8 text-center">
+              <Package className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">No Inventory Items</h3>
+              <p className="text-slate-400 mb-4">Add some items to your inventory.</p>
+              <Button
+                onClick={() => navigate("/add-item")}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Add New Item
+              </Button>
             </CardContent>
           </Card>
-        ))}
+        </div>
       </div>
+    );
+  }
 
-      {editingItem && (
-        <EditItemDialog
-          item={editingItem}
-          isOpen={!!editingItem}
-          onClose={() => setEditingItem(null)}
-          onSave={handleSave}
-        />
-      )}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
+              Inventory List
+            </h1>
+            <p className="text-blue-200 text-lg">Manage your inventory items</p>
+          </div>
+          <Button
+            onClick={() => navigate("/")}
+            variant="outline"
+            className="bg-blue-600 text-white border-blue-500 hover:bg-blue-700"
+          >
+            <Home className="w-4 h-4 mr-2" />
+            Home
+          </Button>
+        </div>
+
+        <Card className="bg-slate-800 border-slate-600">
+          <CardHeader>
+            <CardTitle className="text-white">Inventory Items</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-600">
+                    <th className="text-left py-3 px-4 text-blue-200">Item</th>
+                    <th className="text-left py-3 px-4 text-blue-200">Category</th>
+                    <th className="text-left py-3 px-4 text-blue-200">Quantity</th>
+                    <th className="text-left py-3 px-4 text-blue-200">Unit</th>
+                    <th className="text-left py-3 px-4 text-blue-200">Purchase Price</th>
+                    <th className="text-left py-3 px-4 text-blue-200">Selling Price</th>
+                    <th className="text-left py-3 px-4 text-blue-200">Supplier</th>
+                    <th className="text-left py-3 px-4 text-blue-200">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item) => (
+                    <tr key={item.id} className="border-b border-slate-700 hover:bg-slate-700/50">
+                      <td className="py-3 px-4 text-white font-medium">{item.name}</td>
+                      <td className="py-3 px-4 text-blue-200">{item.category}</td>
+                      <td className="py-3 px-4 text-white">{item.quantity}</td>
+                      <td className="py-3 px-4 text-blue-200">{item.unit}</td>
+                      <td className="py-3 px-4 text-white">${item.purchase_price.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-white">${item.selling_price.toFixed(2)}</td>
+                      <td className="py-3 px-4 text-blue-200">{item.supplier}</td>
+                      <td className="py-3 px-4 flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditItem(item);
+                            setIsDialogOpen(true);
+                          }}
+                          className="text-blue-200 border-blue-500 hover:bg-blue-700"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => onDeleteItem(item.id)}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          <Trash className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {editItem && (
+          <EditItemDialog
+            item={editItem}
+            isOpen={isDialogOpen}
+            onClose={() => {
+              setEditItem(null);
+              setIsDialogOpen(false);
+            }}
+            onSave={handleSave}
+          />
+        )}
+      </div>
     </div>
   );
 };
+
+export default InventoryList;
