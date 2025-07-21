@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useInventory, InventoryItem } from "@/hooks/useInventory"; // Import the hook and interface
+import { useInventory, InventoryItem } from "@/hooks/useInventory";
 import { InventoryList } from "@/components/InventoryList";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,6 @@ const LowStock = () => {
 
   // Filter items where quantity is less than or equal to min_stock
   const lowStockItems = items.filter(item => item.quantity <= item.min_stock);
-
-  function handleUpdateItem(id: string, updates: Partial<InventoryItem>): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
@@ -48,9 +44,9 @@ const LowStock = () => {
           </div>
         ) : lowStockItems.length > 0 ? (
           <InventoryList 
-            items={InventoryList} 
-            onUpdateItem={handleUpdateItem}
-            onDeleteItem={handleDeleteItem}
+            items={lowStockItems} 
+            onUpdateItem={updateItem}
+            onDeleteItem={deleteItem}
           />
         ) : (
           <div className="text-center py-12">
