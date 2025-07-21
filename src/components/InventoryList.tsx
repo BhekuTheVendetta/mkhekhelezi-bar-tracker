@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { InventoryItem } from "@/pages/Index";
+import { InventoryItem } from "@/hooks/useInventory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface InventoryListProps {
   items: InventoryItem[];
-  onUpdateItem: (item: InventoryItem) => void;
+  onUpdateItem: (id: string, updates: Partial<InventoryItem>) => void;
   onDeleteItem: (id: string) => void;
 }
 
@@ -30,7 +30,7 @@ export const InventoryList = ({ items, onUpdateItem, onDeleteItem }: InventoryLi
   };
 
   const handleSave = (updatedItem: InventoryItem) => {
-    onUpdateItem(updatedItem);
+    onUpdateItem(updatedItem.id, updatedItem);
     setEditingItem(null);
   };
 
@@ -39,7 +39,7 @@ export const InventoryList = ({ items, onUpdateItem, onDeleteItem }: InventoryLi
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-white">Inventory Items</h2>
         <div className="text-sm text-blue-200">
-          {items.length} items • {items.filter(item => item.quantity <= item.minStock).length} low stock
+          {items.length} items • {items.filter(item => item.quantity <= item.min_stock).length} low stock
         </div>
       </div>
 
@@ -54,7 +54,7 @@ export const InventoryList = ({ items, onUpdateItem, onDeleteItem }: InventoryLi
                     <Badge variant="secondary" className="bg-blue-600 text-white">
                       {item.category}
                     </Badge>
-                    {item.quantity <= item.minStock && (
+                    {item.quantity <= item.min_stock && (
                       <Badge variant="destructive" className="flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3" />
                         Low Stock
@@ -89,15 +89,15 @@ export const InventoryList = ({ items, onUpdateItem, onDeleteItem }: InventoryLi
                 </div>
                 <div>
                   <p className="text-blue-200">Min Stock</p>
-                  <p className="text-white font-medium">{item.minStock} {item.unit}</p>
+                  <p className="text-white font-medium">{item.min_stock} {item.unit}</p>
                 </div>
                 <div>
                   <p className="text-blue-200">Purchase Price</p>
-                  <p className="text-white font-medium">${item.purchasePrice}</p>
+                  <p className="text-white font-medium">${item.purchase_price}</p>
                 </div>
                 <div>
                   <p className="text-blue-200">Selling Price</p>
-                  <p className="text-white font-medium">${item.sellingPrice}</p>
+                  <p className="text-white font-medium">${item.selling_price}</p>
                 </div>
                 <div className="md:col-span-2">
                   <p className="text-blue-200">Supplier</p>
@@ -105,7 +105,7 @@ export const InventoryList = ({ items, onUpdateItem, onDeleteItem }: InventoryLi
                 </div>
                 <div className="md:col-span-2">
                   <p className="text-blue-200">Last Updated</p>
-                  <p className="text-white font-medium">{item.lastUpdated.toLocaleDateString()}</p>
+                  <p className="text-white font-medium">{new Date(item.updated_at).toLocaleDateString()}</p>
                 </div>
               </div>
             </CardContent>

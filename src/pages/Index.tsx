@@ -1,99 +1,26 @@
 import { useState } from "react";
-import { InventoryDashboard } from "@/components/InventoryDashboard";
+import { useInventory, InventoryItem } from "@/hooks/useInventory";
 import { InventoryList } from "@/components/InventoryList";
 import { AddItemForm } from "@/components/AddItemForm";
 import { Navbar } from "@/components/Navbar";
-import { Package, Plus, BarChart3 } from "lucide-react";
+import { Package, Plus, BarChart3, AlertTriangle, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-export interface InventoryItem {
-  id: string;
-  name: string;
-  category: string;
-  quantity: number;
-  unit: string;
-  minStock: number;
-  purchasePrice: number;
-  sellingPrice: number;
-  supplier: string;
-  lastUpdated: Date;
-}
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 const Index = () => {
+  const { items, loading, saveItem, updateItem, deleteItem } = useInventory();
   const [activeTab, setActiveTab] = useState<"dashboard" | "inventory" | "add">("dashboard");
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([
-    {
-      id: "1",
-      name: "Jack Daniels",
-      category: "Spirits",
-      quantity: 12,
-      unit: "bottles",
-      minStock: 5,
-      purchasePrice: 35.99,
-      sellingPrice: 45.99,
-      supplier: "Premium Spirits Co.",
-      lastUpdated: new Date("2024-05-28")
-    },
-    {
-      id: "2",
-      name: "Heineken",
-      category: "Beer",
-      quantity: 3,
-      unit: "cases",
-      minStock: 5,
-      purchasePrice: 22.50,
-      sellingPrice: 28.50,
-      supplier: "Beer Distributors",
-      lastUpdated: new Date("2024-05-29")
-    },
-    {
-      id: "3",
-      name: "Cabernet Sauvignon",
-      category: "Wine",
-      quantity: 8,
-      unit: "bottles",
-      minStock: 3,
-      purchasePrice: 24.00,
-      sellingPrice: 32.00,
-      supplier: "Wine Merchants",
-      lastUpdated: new Date("2024-05-27")
-    },
-    {
-      id: "4",
-      name: "Coca Cola",
-      category: "Mixers",
-      quantity: 2,
-      unit: "cases",
-      minStock: 4,
-      purchasePrice: 14.75,
-      sellingPrice: 18.75,
-      supplier: "Beverage Supply",
-      lastUpdated: new Date("2024-05-30")
-    }
-  ]);
 
-  const addItem = (newItem: Omit<InventoryItem, "id">) => {
-    const item: InventoryItem = {
-      ...newItem,
-      id: Date.now().toString(),
-    };
-    setInventoryItems([...inventoryItems, item]);
-    setActiveTab("inventory");
-  };
+  // Calculate dashboard metrics
+  const totalItems = items.length;
+  const lowStockItems = items.filter(item => item.quantity <= item.min_stock).length;
+  const totalValue = items.reduce((sum, item) => sum + (item.quantity * item.purchase_price), 0);
+  const totalPotentialRevenue = items.reduce((sum, item) => sum + (item.quantity * item.selling_price), 0);
 
-  const updateItem = (updatedItem: InventoryItem) => {
-    setInventoryItems(items =>
-      items.map(item => item.id === updatedItem.id ? updatedItem : item)
-    );
-  };
-
-  const deleteItem = (id: string) => {
-    setInventoryItems(items => items.filter(item => item.id !== id));
-  };
-
-  const handleNavigateToInventory = () => {
-    setActiveTab("inventory");
-  };
+  // Log metrics for debugging
+  console.log('Index - Items:', items);
+  console.log('Index - Metrics:', { totalItems, lowStockItems, totalValue, totalPotentialRevenue });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
@@ -151,20 +78,89 @@ const Index = () => {
 
         {/* Content */}
         <div className="animate-in fade-in-0 duration-500">
-          {activeTab === "dashboard" && (
-            <InventoryDashboard 
-              items={inventoryItems} 
-              onNavigateToInventory={handleNavigateToInventory}
-            />
+          {loading ? (
+            <div className="text-center py-12">
+              <h2 className="text-2xl font-bold text-white mb-2">Loading...</h2>
+              <p className="text-blue-200">Fetching inventory data...</p>
+            </div>
+          ) : (
+            <>
+              {activeTab === "dashboard" && (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                  {/* Total Items Card */}
+                  <Card 
+                    className="bg-slate-800 border-slate-600 text-white hover:bg-slate-700 cursor-pointer"
+                    onClick={() => setActiveTab("inventory")}
+                  >
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center space-x-2 text-sm">
+                        <Package className="w-4 h-4" />
+                        <span>Total Items</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{totalItems}</div>
+                      <p className="text-blue-200 text-sm">Items in inventory</p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Low Stock Card */}
+                  <Link to="/low-stock">
+                    <Card className="bg-slate-800 border-slate-600 text-white hover:bg-slate-700 cursor-pointer">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center space-x-2 text-sm">
+                          <AlertTriangle className="w-4 h-4" />
+                          <span>Low Stock</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{lowStockItems}</div>
+                        <p className="text-blue-200 text-sm">Items needing restock</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+
+                  {/* Total Value Card */}
+                  <Card className="bg-slate-800 border-slate-600 text-white">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center space-x-2 text-sm">
+                        <DollarSign className="w-4 h-4" />
+                        <span>Total Value</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">${totalValue.toFixed(2)}</div>
+                      <p className="text-blue-200 text-sm">Inventory cost</p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Potential Revenue Card */}
+                  <Link to="/potential-revenue">
+                    <Card className="bg-slate-800 border-slate-600 text-white hover:bg-slate-700 cursor-pointer">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="flex items-center space-x-2 text-sm">
+                          <DollarSign className="w-4 h-4" />
+                          <span>Potential Revenue</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">${totalPotentialRevenue.toFixed(2)}</div>
+                        <p className="text-blue-200 text-sm">From {totalItems} items</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </div>
+              )}
+              {activeTab === "inventory" && (
+                <InventoryList 
+                  items={items} 
+                  onUpdateItem={updateItem}
+                  onDeleteItem={deleteItem}
+                />
+              )}
+              {activeTab === "add" && <AddItemForm onAddItem={saveItem} />}
+            </>
           )}
-          {activeTab === "inventory" && (
-            <InventoryList 
-              items={inventoryItems} 
-              onUpdateItem={updateItem}
-              onDeleteItem={deleteItem}
-            />
-          )}
-          {activeTab === "add" && <AddItemForm onAddItem={addItem} />}
         </div>
       </div>
     </div>

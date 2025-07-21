@@ -1,23 +1,23 @@
-
 import { useState } from "react";
-import { InventoryItem } from "@/pages/Index";
+import { InventoryItem } from "@/hooks/useInventory"; // Use InventoryItem from useInventory
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Package } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useInventory } from "@/hooks/useInventory";
+import { useNavigate } from "react-router-dom";
+import { ItemFormFields } from "./forms/ItemFormFields";
+import { Home, Loader2 } from "lucide-react";
 
+// Define props interface
 interface AddItemFormProps {
-  onAddItem: (item: Omit<InventoryItem, "id">) => void;
+  onAddItem: (item: Omit<InventoryItem, "id" | "created_at" | "updated_at">) => Promise<InventoryItem>;
 }
-
-const categories = ["Spirits", "Beer", "Wine", "Mixers", "Snacks", "Glassware", "Supplies"];
-const units = ["bottles", "cases", "liters", "pieces", "boxes", "kegs"];
 
 export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { saving } = useInventory();
+
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -29,177 +29,113 @@ export const AddItemForm = ({ onAddItem }: AddItemFormProps) => {
     supplier: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.category || !formData.quantity || !formData.unit || !formData.minStock || !formData.purchasePrice || !formData.sellingPrice || !formData.supplier) {
+
+    // Validate required fields
+    if (!formData.name || !formData.category || !formData.quantity) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in all required fields (Name, Category, Quantity)",
         variant: "destructive",
       });
+      console.log('Validation failed - missing required fields');
       return;
     }
 
-    const newItem: Omit<InventoryItem, "id"> = {
-      name: formData.name,
-      category: formData.category,
-      quantity: parseInt(formData.quantity),
-      unit: formData.unit,
-      minStock: parseInt(formData.minStock),
-      purchasePrice: parseFloat(formData.purchasePrice),
-      sellingPrice: parseFloat(formData.sellingPrice),
-      supplier: formData.supplier,
-      lastUpdated: new Date(),
-    };
+    try {
+      console.log('Form submission started with data:', formData);
 
-    onAddItem(newItem);
-    
-    // Reset form
-    setFormData({
-      name: "",
-      category: "",
-      quantity: "",
-      unit: "",
-      minStock: "",
-      purchasePrice: "",
-      sellingPrice: "",
-      supplier: "",
-    });
+      const itemToSave: Omit<InventoryItem, "id" | "created_at" | "updated_at"> = {
+        name: formData.name,
+        category: formData.category,
+        quantity: parseInt(formData.quantity) || 0,
+        unit: formData.unit || 'pieces',
+        min_stock: parseInt(formData.minStock) || 0,
+        purchase_price: parseFloat(formData.purchasePrice) || 0,
+        selling_price: parseFloat(formData.sellingPrice) || 0,
+        supplier: formData.supplier || '',
+      };
 
-    toast({
-      title: "Success",
-      description: "Item added to inventory successfully",
-    });
-  };
+      console.log('Saving item with processed data:', itemToSave);
+      await onAddItem(itemToSave);
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+      toast({
+        title: "Success",
+        description: "Item added successfully",
+      });
+
+      // Reset form on successful save
+      setFormData({
+        name: "",
+        category: "",
+        quantity: "",
+        unit: "",
+        minStock: "",
+        purchasePrice: "",
+        sellingPrice: "",
+        supplier: "",
+      });
+      console.log('Form reset after successful save');
+
+      // Navigate to inventory tab after successful save
+      navigate("/?tab=inventory");
+    } catch (error: any) {
+      console.error('Error in form submission:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item: " + error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <Card className="bg-gradient-to-br from-slate-800 to-slate-700 border-slate-600">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-white">Add Inventory Item</h1>
+        <Button
+          onClick={() => navigate("/")}
+          variant="outline"
+          className="bg-blue-600 text-white border-blue-500 hover:bg-blue-700"
+        >
+          <Home className="w-4 h-4 mr-2" />
+          Home
+        </Button>
+      </div>
+
+      <Card className="bg-slate-800 border-slate-600">
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2 text-white">
-            <Package className="w-6 h-6 text-blue-400" />
-            <span>Add New Inventory Item</span>
-          </CardTitle>
+          <CardTitle className="text-white">Item Details</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-blue-200">Item Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  placeholder="e.g., Jack Daniels"
-                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="category" className="text-blue-200">Category</Label>
-                <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category} className="text-white">
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="quantity" className="text-blue-200">Current Quantity</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  value={formData.quantity}
-                  onChange={(e) => handleInputChange("quantity", e.target.value)}
-                  placeholder="0"
-                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="unit" className="text-blue-200">Unit</Label>
-                <Select value={formData.unit} onValueChange={(value) => handleInputChange("unit", value)}>
-                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                    <SelectValue placeholder="Select unit" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
-                    {units.map(unit => (
-                      <SelectItem key={unit} value={unit} className="text-white">
-                        {unit}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="minStock" className="text-blue-200">Minimum Stock Level</Label>
-                <Input
-                  id="minStock"
-                  type="number"
-                  value={formData.minStock}
-                  onChange={(e) => handleInputChange("minStock", e.target.value)}
-                  placeholder="0"
-                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="purchasePrice" className="text-blue-200">Purchase Price ($)</Label>
-                <Input
-                  id="purchasePrice"
-                  type="number"
-                  step="0.01"
-                  value={formData.purchasePrice}
-                  onChange={(e) => handleInputChange("purchasePrice", e.target.value)}
-                  placeholder="0.00"
-                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="sellingPrice" className="text-blue-200">Selling Price ($)</Label>
-                <Input
-                  id="sellingPrice"
-                  type="number"
-                  step="0.01"
-                  value={formData.sellingPrice}
-                  onChange={(e) => handleInputChange("sellingPrice", e.target.value)}
-                  placeholder="0.00"
-                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="supplier" className="text-blue-200">Supplier</Label>
-              <Input
-                id="supplier"
-                value={formData.supplier}
-                onChange={(e) => handleInputChange("supplier", e.target.value)}
-                placeholder="e.g., Premium Spirits Co."
-                className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-              />
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white"
+            <ItemFormFields
+              formData={formData}
+              onInputChange={handleInputChange}
+              idPrefix="add-item"
+            />
+            
+            <Button
+              type="submit"
+              disabled={saving}
+              className="w-full bg-blue-600 hover:bg-blue-700"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Item to Inventory
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Add Item"
+              )}
             </Button>
           </form>
         </CardContent>

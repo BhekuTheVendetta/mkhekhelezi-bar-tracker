@@ -69,7 +69,7 @@ export const EditItemForm = ({ item, onSave, onCancel }: EditItemFormProps) => {
 
     toast({
       title: "Success",
-      description: "Item updated successfully",
+      description: "Item update success",
     });
   };
 
