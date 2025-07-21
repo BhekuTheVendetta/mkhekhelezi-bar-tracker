@@ -11,16 +11,27 @@ import { Link } from "react-router-dom";
 const Index = () => {
   const { items, loading, saveItem, updateItem, deleteItem } = useInventory();
   const [activeTab, setActiveTab] = useState<"dashboard" | "inventory" | "add">("dashboard");
-
   // Calculate dashboard metrics
   const totalItems = items.length;
   const lowStockItems = items.filter(item => item.quantity <= item.min_stock).length;
   const totalValue = items.reduce((sum, item) => sum + (item.quantity * item.purchase_price), 0);
   const totalPotentialRevenue = items.reduce((sum, item) => sum + (item.quantity * item.selling_price), 0);
-
   // Log metrics for debugging
   console.log('Index - Items:', items);
   console.log('Index - Metrics:', { totalItems, lowStockItems, totalValue, totalPotentialRevenue });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-white text-xl">Loading inventory...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">

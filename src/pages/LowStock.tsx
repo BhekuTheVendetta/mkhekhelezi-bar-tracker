@@ -13,6 +13,10 @@ const LowStock = () => {
   // Filter items where quantity is less than or equal to min_stock
   const lowStockItems = items.filter(item => item.quantity <= item.min_stock);
 
+  function handleUpdateItem(id: string, updates: Partial<InventoryItem>): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
       <Navbar />
@@ -44,9 +48,9 @@ const LowStock = () => {
           </div>
         ) : lowStockItems.length > 0 ? (
           <InventoryList 
-            items={lowStockItems} 
-            onUpdateItem={updateItem}
-            onDeleteItem={deleteItem}
+            items={InventoryList} 
+            onUpdateItem={handleUpdateItem}
+            onDeleteItem={handleDeleteItem}
           />
         ) : (
           <div className="text-center py-12">
