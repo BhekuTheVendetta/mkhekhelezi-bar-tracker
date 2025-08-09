@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { InventoryItem } from "@/pages/Index";
+import { InventoryItem } from "@/hooks/useInventory";
 import { Button } from "@/components/ui/button";
 import { Save, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -19,10 +18,11 @@ export const EditItemForm = ({ item, onSave, onCancel }: EditItemFormProps) => {
     category: "",
     quantity: "",
     unit: "",
-    minStock: "",
-    purchasePrice: "",
-    sellingPrice: "",
+    minStock: "", // Aligned with ItemFormFieldsProps
+    purchasePrice: "", // Aligned with ItemFormFieldsProps
+    sellingPrice: "", // Aligned with ItemFormFieldsProps
     supplier: "",
+    updated_at: new Date().toISOString(), // Ensure updated_at is set
   });
 
   useEffect(() => {
@@ -32,10 +32,11 @@ export const EditItemForm = ({ item, onSave, onCancel }: EditItemFormProps) => {
         category: item.category,
         quantity: item.quantity.toString(),
         unit: item.unit,
-        minStock: item.minStock.toString(),
-        purchasePrice: item.purchasePrice.toString(),
-        sellingPrice: item.sellingPrice.toString(),
+        minStock: item.min_stock.toString(), // Aligned with InventoryItem
+        purchasePrice: item.purchase_price.toString(), // Aligned with InventoryItem
+        sellingPrice: item.selling_price.toString(), // Aligned with InventoryItem
         supplier: item.supplier,
+        updated_at: item.updated_at || new Date().toISOString(), // Ensure updated_at is set
       });
     }
   }, [item]);
@@ -58,11 +59,11 @@ export const EditItemForm = ({ item, onSave, onCancel }: EditItemFormProps) => {
       category: formData.category,
       quantity: parseInt(formData.quantity),
       unit: formData.unit,
-      minStock: parseInt(formData.minStock),
-      purchasePrice: parseFloat(formData.purchasePrice),
-      sellingPrice: parseFloat(formData.sellingPrice),
+      min_stock: parseInt(formData.minStock),
+      purchase_price: parseFloat(formData.purchasePrice),
+      selling_price: parseFloat(formData.sellingPrice),
       supplier: formData.supplier,
-      lastUpdated: new Date(),
+      updated_at: formData.updated_at || new Date().toISOString(), // Ensure updated_at is set
     };
 
     onSave(updatedItem);
