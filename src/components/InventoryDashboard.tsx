@@ -1,5 +1,5 @@
-
-import { InventoryItem } from "@/pages/Index";
+import React from "react";
+import { InventoryItem } from "@/hooks/useInventory"; // Updated import
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Package, TrendingUp, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -12,9 +12,9 @@ interface InventoryDashboardProps {
 export const InventoryDashboard = ({ items, onNavigateToInventory }: InventoryDashboardProps) => {
   const navigate = useNavigate();
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const lowStockItems = items.filter(item => item.quantity <= item.minStock);
-  const totalValue = items.reduce((sum, item) => sum + (item.quantity * item.purchasePrice), 0);
-  const potentialRevenue = items.reduce((sum, item) => sum + (item.quantity * item.sellingPrice), 0);
+  const lowStockItems = items.filter(item => item.quantity <= item.min_stock); // Updated to min_stock
+  const totalValue = items.reduce((sum, item) => sum + (item.quantity * item.purchase_price), 0); // Updated to purchase_price
+  const potentialRevenue = items.reduce((sum, item) => sum + (item.quantity * item.selling_price), 0); // Updated to selling_price
 
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
